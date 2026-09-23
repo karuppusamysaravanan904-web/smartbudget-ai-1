@@ -25,18 +25,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const fetchCurrentUser = async () => {
     try {
+      const hasLoggedOut = localStorage.getItem('smartbudget_logged_out') === 'true';
       const token = getAuthToken();
+
       if (!token) {
+        if (!hasLoggedOut) {
+          // Automatically launch into demo session on first visit so user immediately sees the dashboard
+          await demoLogin();
+          return;
+        }
         setUser(null);
         setLoading(false);
         return;
       }
+
       const data = await api.getMe();
       setUser(data.user);
     } catch (err) {
-      console.warn('Failed to load user session:', err);
-      clearAuthToken();
-      setUser(null);
+      console.warn('Session load error, activating demo session:', err);
+      try {
+        await demoLogin();
+      } catch {
+        setUser(null);
+      }
     } finally {
       setLoading(false);
     }
@@ -55,6 +66,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (email: string, password: string) => {
     setLoading(true);
+    localStorage.removeItem('smartbudget_logged_out');
     try {
       const res = await api.login({ email, password });
       setAuthToken(res.token);
@@ -66,6 +78,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const register = async (name: string, email: string, password: string) => {
     setLoading(true);
+    localStorage.removeItem('smartbudget_logged_out');
     try {
       const res = await api.register({ name, email, password });
       setAuthToken(res.token);
@@ -77,6 +90,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const demoLogin = async () => {
     setLoading(true);
+    localStorage.removeItem('smartbudget_logged_out');
     try {
       const res = await api.login({ email: 'demo@smartbudget.ai', password: 'password123' });
       setAuthToken(res.token);
@@ -87,6 +101,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = () => {
+    localStorage.setItem('smartbudget_logged_out', 'true');
     clearAuthToken();
     setUser(null);
   };
