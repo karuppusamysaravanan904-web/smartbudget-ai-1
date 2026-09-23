@@ -11,6 +11,8 @@
     "dev:server": "cd server && npm run dev",
     "dev:client": "cd client && npm run dev",
     "build": "cd server && npm run build && cd ../client && npm run build",
+    "build:client": "cd client && npm run build",
+    "build:docs": "cd client && npm run build -- --outDir ../docs",
     "db:migrate": "cd server && npx prisma migrate dev --name init",
     "db:push": "cd server && npx prisma db push",
     "db:seed": "cd server && npm run db:seed"
