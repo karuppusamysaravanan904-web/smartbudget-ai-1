@@ -1,0 +1,23 @@
+{
+  "name": "smartbudget-ai",
+  "version": "1.0.0",
+  "description": "SMARTBUDGET AI - AI-Powered Personal Budget Planner (PS49)",
+  "private": true,
+  "scripts": {
+    "install:all": "npm run install:server && npm run install:client",
+    "install:server": "cd server && npm install",
+    "install:client": "cd client && npm install",
+    "dev": "concurrently -k -n \"SERVER,CLIENT\" -c \"cyan,magenta\" \"npm run dev:server\" \"npm run dev:client\"",
+    "dev:server": "cd server && npm run dev",
+    "dev:client": "cd client && npm run dev",
+    "build": "cd server && npm run build && cd ../client && npm run build",
+    "build:client": "cd client && npm run build",
+    "build:docs": "cd client && npm run build -- --outDir ../docs",
+    "db:migrate": "cd server && npx prisma migrate dev --name init",
+    "db:push": "cd server && npx prisma db push",
+    "db:seed": "cd server && npm run db:seed"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

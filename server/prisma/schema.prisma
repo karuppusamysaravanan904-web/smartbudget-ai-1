@@ -1,0 +1,117 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id              String           @id @default(uuid())
+  email           String           @unique
+  password        String
+  name            String
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  categories      Category[]
+  budgets         Budget[]
+  expenses        Expense[]
+  settings        Settings?
+  financialProfile FinancialProfile?
+  aiConversations AIConversation[]
+}
+
+model Category {
+  id        String    @id @default(uuid())
+  name      String
+  icon      String    @default("Tag")
+  color     String    @default("#6366f1")
+  isDefault Boolean   @default(false)
+  userId    String?
+  user      User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  budgets   Budget[]
+  expenses  Expense[]
+  createdAt DateTime  @default(now())
+}
+
+model Budget {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  month      String   // Format: "YYYY-MM", e.g. "2026-09"
+  amount     Float
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([userId, categoryId, month])
+}
+
+model Expense {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  categoryId  String
+  category    Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  title       String
+  amount      Float
+  date        DateTime
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Settings {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  currency  String   @default("₹")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AIConversation {
+  id        String      @id @default(uuid())
+  userId    String
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String      @default("Budget Assistance")
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  messages  AIMessage[]
+}
+
+model AIMessage {
+  id             String         @id @default(uuid())
+  conversationId String
+  conversation   AIConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  role           String         // "user" | "assistant" | "system"
+  content        String
+  contextData    String?        // JSON string of retrieved context for full transparency
+  isSimulation   Boolean        @default(false)
+  createdAt      DateTime       @default(now())
+}
+
+model FinancialProfile {
+  id                 String   @id @default(uuid())
+  userId             String   @unique
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  monthlyIncome      Float    @default(0)
+  incomeFrequency    String   @default("monthly") // "monthly" | "weekly" | "yearly"
+  earningMembers     Int      @default(1)
+  householdMembers   Int      @default(1)
+  dependents         Int      @default(0)
+  children           Int      @default(0)
+  adults             Int      @default(1)
+  seniors            Int      @default(0)
+  monthlyRent        Float    @default(0)
+  monthlyEmi         Float    @default(0)
+  monthlyUtilities   Float    @default(0)
+  monthlyInsurance   Float    @default(0)
+  otherFixedExpenses Float    @default(0)
+  monthlySavingsGoal Float    @default(0)
+  emergencyFundGoal  Float?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
